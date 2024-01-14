@@ -16,7 +16,7 @@ const server = http.createServer(app);
 app.use(express.json()); //to parse parse json
 app.use(cors());
 
-const port = process.env.PORT; // You can change the port as needed
+const port = process.env.PORT || 3001; // You can change the port as needed
 dotenv.config();
 const db_connect = process.env.DB_CONNECT;
 
