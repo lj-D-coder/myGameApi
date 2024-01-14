@@ -23,14 +23,7 @@ export const addUser = async (req, res, next) => {
   console.log(req.body);
   try {
     const { userRole, userName } = req.body;
-    let { loginId, email, phoneNo} = req.body;
-
-    // Check if email is provided and not an empty string
-    if (email === null || email.trim() === '') {email = undefined; } 
-    if (phoneNo === null || phoneNo.trim() === '') { phoneNo = undefined; }
-
-    if (!phoneNo && !email) return next(errorHandler(403, "Invalid input"));
-
+    let { loginId, email, phoneNo } = req.body;
     const checkloginId = await User.findOne({ loginId });  
    
     if (checkloginId) {
@@ -42,6 +35,14 @@ export const addUser = async (req, res, next) => {
       return res.status(200).json({ success: true, JWT_token });
 
     }
+    
+    // Check if email is provided and not an empty string
+    if (email === null || email.trim() === '') {email = undefined; } 
+    if (phoneNo === null || phoneNo.trim() === '') { phoneNo = undefined; }
+
+    if (!phoneNo && !email) return next(errorHandler(403, "Invalid input"));
+
+    
 
     const user = new User({ loginId, userName, phoneNo, userRole, email });
 
