@@ -19,62 +19,62 @@ const isImageExtensionValid = (extension) => {
   return allowedExtensions.includes(extension.toLowerCase());
 };
 
-export const addUser = async (req, res, next) => {
-  console.log(req.body);
+export const authAddUser = async (req, res, next) => {
   try {
-    const { userRole, userName } = req.body;
-    let { loginId, email, phoneNo } = req.body;
+    const { loginId,userRole, userName } = req.body;
+    let { email, phoneNo } = req.body;
+
     const checkloginId = await User.findOne({ loginId });  
-   
     if (checkloginId) {
       const JWT_token = jwt.sign(
-        { userId: checkloginId._id, data: checkloginId},
+        { userId: checkloginId._id, data: checkloginId },
         process.env.JWT_SECRET
       );
       console.log("fetching user data");
       return res.status(200).json({ success: true, JWT_token });
-
     }
-    
-    // Check if email is provided and not an empty string
-    if (email === null || email.trim() === '') {email = undefined; } 
-    if (phoneNo === null || phoneNo.trim() === '') { phoneNo = undefined; }
+
+    // // Check if email is provided and not an empty string
+    if (email === null || email.trim() === '') {
+      email = undefined;
+    } 
+    if (phoneNo === null || phoneNo.trim() === '') {
+      phoneNo = undefined;
+    }
 
     if (!phoneNo && !email) return next(errorHandler(403, "Invalid input"));
 
-    
-
     const user = new User({ loginId, userName, phoneNo, userRole, email });
 
-    if (req.file) {
-      const timestamp = Date.now();
-      const ext = path.extname(req.file.originalname);
+    // if (req.file) {
+    //   const timestamp = Date.now();
+    //   const ext = path.extname(req.file.originalname);
 
-      // Check if the file extension is valid
-      if (!isImageExtensionValid(ext)) {
-        fs.unlinkSync(req.file.path);
-        return res.status(400).json({ success: false, message: 'Invalid image file format' });
-      }
+    //   // Check if the file extension is valid
+    //   if (!isImageExtensionValid(ext)) {
+    //     fs.unlinkSync(req.file.path);
+    //     return res.status(400).json({ success: false, message: 'Invalid image file format' });
+    //   }
 
-      const newFilename = `${timestamp}.webp`;
-      const newPath = path.join(uploadDir, newFilename);
+    //   const newFilename = `${timestamp}.webp`;
+    //   const newPath = path.join(uploadDir, newFilename);
 
-      // Resize and convert image to webp
-      await sharp(req.file.path)
-        .resize({ width: 500, height: 500, fit: 'cover' })
-        .webp({ quality: 80 })
-        .toFile(newPath);
+    //   // Resize and convert image to webp
+    //   await sharp(req.file.path)
+    //     .resize({ width: 500, height: 500, fit: 'cover' })
+    //     .webp({ quality: 80 })
+    //     .toFile(newPath);
 
-      fs.unlinkSync(req.file.path);
+    //   fs.unlinkSync(req.file.path);
 
-      user.profilePicture = `${process.env.DOMAIN_NAME}/uploads/${newFilename}`;
-    }
+    //   user.profilePicture = `${process.env.DOMAIN_NAME}/uploads/${newFilename}`;
+    // }
    
     await user.save({ omitUndefined: true });
 
     const JWT_token = jwt.sign(
       { userId: user._id, data: user},process.env.JWT_SECRET);
-    console.log("fetching user data");
+    console.log("adding new user data");
     return res.status(200).json({ success: true, message: 'User added successfully', JWT_token });
   } catch (error) {
     console.error(error);
